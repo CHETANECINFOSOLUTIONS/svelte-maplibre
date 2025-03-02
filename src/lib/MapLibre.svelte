@@ -16,10 +16,13 @@
   import GeolocateControl from './GeolocateControl.svelte';
   import FullscreenControl from './FullscreenControl.svelte';
   import ScaleControl from './ScaleControl.svelte';
-  import type { Snippet } from 'svelte';
+  import { setContext, type Snippet } from 'svelte';
+  import type { GmOptionsPartial } from '@geoman-io/maplibre-geoman-free';
 
   interface Props {
     map?: maplibregl.Map;
+    addGeoMan?: boolean;
+    geoman?: any;
     /** The `div` element that the Map is placed into. You can bind to this prop to access the element for yourself.
      * Setting it externally will have no effect. */
     mapContainer?: HTMLDivElement | undefined;
@@ -104,6 +107,8 @@
 
   let {
     map = $bindable(undefined),
+    addGeoMan = false,
+    geoman = $bindable(undefined),
     mapContainer = $bindable(undefined),
     class: classNames = undefined,
     style,
@@ -212,6 +217,12 @@
     }
   });
 
+  $effect(() => {
+    if (map && geoman) {
+      setContext('geoman', geoman);
+    }
+  });
+
   let allImagesLoaded = $derived(images.every((image) => mapContext.loadedImages.has(image.id)));
 
   // These variables are used to keep track of what sources / layers
@@ -237,7 +248,7 @@
     }
   }
 
-  function createMap(element: HTMLDivElement) {
+  async function createMap(element: HTMLDivElement) {
     onHashChange();
 
     map = mapContext.map = new maplibre.Map(
@@ -268,6 +279,22 @@
         cooperativeGestures,
       })
     );
+
+    let { Geoman } = await import('@geoman-io/maplibre-geoman-free');
+    await import('@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css');
+    const gmOptions: GmOptionsPartial = {
+      controls: {
+        helper: {
+          snapping: {
+            uiEnabled: true,
+            active: true,
+          },
+        },
+      },
+    };
+    if (addGeoMan) {
+      geoman = new Geoman(map, gmOptions);
+    }
 
     map.on('load', (e) => {
       e.target.getContainer().setAttribute('data-testid', 'map');

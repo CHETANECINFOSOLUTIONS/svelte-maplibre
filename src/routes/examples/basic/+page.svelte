@@ -2,10 +2,15 @@
   import MapLibre from '$lib/MapLibre.svelte';
   import CodeSample from '$site/CodeSample.svelte';
   import code from './+page.svelte?raw';
+
+  let geoman = $state();
+  let addGeoMan = $state(false);
 </script>
 
 <MapLibre
   style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+  bind:geoman
+  {addGeoMan}
   class="relative aspect-[9/16] max-h-[70vh] w-full sm:aspect-video sm:max-h-full"
   standardControls
 />
